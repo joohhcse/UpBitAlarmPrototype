@@ -58,13 +58,10 @@ class SaveCoinAlarmDlg1(context: Context, var title: String, var content: String
 
 
         btn_positive.setOnClickListener {
-//            var adapter1 = ArrayAdapter(this, R.id.coinSpinner_name, null)
-
 //            var coinIdx : Spinner = findViewById(R.id.coinSpinner_name) as Spinner
-            val textView: TextView = findViewById(R.id.coinEdit_price)
+//            val textView: TextView = findViewById(R.id.coinEdit_price)
 //            var condIdx = findViewById(R.id.coinSpinner_condition) as Spinner
-
-            val price = textView.toString().toDouble()
+//            val price = textView.toString().toDouble()
 
 //            Log.d("SaveCoinAlarmDlg1", "coinNameIdx > $coinIdx")
 //            Log.d("SaveCoinAlarmDlg1", "conditionIdx > $condIdx")

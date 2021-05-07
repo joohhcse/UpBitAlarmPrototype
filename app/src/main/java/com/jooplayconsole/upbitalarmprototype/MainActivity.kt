@@ -26,6 +26,7 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.jooplayconsole.upbitalarmprototype.databinding.DlgSetAlarm1Binding
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dlg_set_alarm1.*
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -64,7 +65,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mSpCoinName1 = findViewById(R.id.coinSpinner_name) as Spinner
+//        mSpCoinName1 = findViewById(R.id.coinSpinner_name) as Spinner
+//        coinSpinner_condition1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                var tmp = coinSpinner_condition1.getItemAtPosition(position)
+//                Log.d("sp_cond1", "#sp_cond1 > $tmp")
+//            }
+//
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//            }
+//        }
 
 //        var dlgSetAlarm1Binding = DlgSetAlarm1Binding.inflate(layoutInflater)
 //        dlgSetAlarm1Binding.coinSpinnerName
