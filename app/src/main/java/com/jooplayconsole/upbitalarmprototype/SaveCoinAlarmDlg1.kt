@@ -34,7 +34,10 @@ class SaveCoinAlarmDlg1(context: Context, var title: String, var content: String
         text_description_alarm_price.text = "코인가격"
         text_description_condition.text = "조건"
 
+
         val coinNameArrData = context.resources.getStringArray(R.array.coin_array)
+//        ArrayAdapter.createFromResource(context, android.R.layout.simple_spinner_item, )
+
 //        val spinner: Spinner = findViewById(R.id.coinSpinner_name)
 //        // Create an ArrayAdapter using the string array and a default spinner layout
 //        ArrayAdapter.createFromResource(

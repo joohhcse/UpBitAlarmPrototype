@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -35,9 +36,9 @@ import java.net.URL
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
-    private var mSpCoinName1: Spinner? = null
-    private var mSpCoinName2: Spinner? = null
-    private var mSpCoinName3: Spinner? = null
+    private lateinit var mSpCoinName1: Spinner
+    private lateinit var mSpCoinName2: Spinner
+    private lateinit var mSpCoinName3: Spinner
 
     private var mSpCoinCond1: Spinner? = null
     private var mSpCoinCond2: Spinner? = null
@@ -46,6 +47,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dlgSetAlarm1Binding : SaveCoinAlarmDlg1
     private lateinit var dlgSetAlarm2Binding : SaveCoinAlarmDlg2
     private lateinit var dlgSetAlarm3Binding : SaveCoinAlarmDlg3
+
+    private lateinit var alertDialog: AlertDialog.Builder
+    private lateinit var dialog: AlertDialog
 
     private var FINISH_INTERVAL_TIME: Long = 1500
     private var backPressedTime: Long = 0
@@ -64,6 +68,65 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //hh.joo 20210509
+//        val coinNameArrData = resources.getStringArray(R.array.coin_array)
+//        val adapter1 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+//        val spinner1: Spinner = findViewById(R.id.coinSpinner_name1)
+//        spinner1.adapter = adapter1
+//        Log.d("MainActivity_onCreate", "adapter1 > $adapter1")
+
+        //practice!
+//        val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
+//        mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
+//
+//        val coinNameArrData = resources.getStringArray(R.array.coin_array)
+//        val adapter1 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+//        mSpCoinName1.adapter = adapter1
+//        Log.d("MainActivity_onCreate", "adapter1 > $adapter1")
+//        mSpCoinName1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                Log.d("mSpCoinName1 > ", ""+mSpCoinName1.getItemAtPosition(position))
+//            }
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//            }
+//        }
+
+        //practice2 ! ok !
+//        alertDialog = AlertDialog.Builder(this)
+//        val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
+//        mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
+//        val coinNameArrData = resources.getStringArray(R.array.coin_array)
+//        val adapter1 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+//        mSpCoinName1.adapter = adapter1
+//        adapter1.notifyDataSetChanged()
+//        alertDialog.setView(dlg1)
+//        dialog = alertDialog.create()
+//        dialog.show()
+//
+//        Log.d("MainActivity_onCreate", "adapter1 > $adapter1")
+//        mSpCoinName1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                Log.d("mSpCoinName1 > ", ""+mSpCoinName1.getItemAtPosition(position))
+//            }
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//            }
+//        }
+
+        val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
+        mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
+        val coinNameArrData = resources.getStringArray(R.array.coin_array)
+        val adapter1 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+        mSpCoinName1.adapter = adapter1
+        mSpCoinName1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                Log.d("mSpCoinName1 > ", ""+mSpCoinName1.getItemAtPosition(position))       //
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+
+        //hh.joo 20210509 end
 
 //        mSpCoinName1 = findViewById(R.id.coinSpinner_name) as Spinner
 //        coinSpinner_condition1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -84,25 +147,28 @@ class MainActivity : AppCompatActivity() {
         //alarm add 1   //  btn_add_1   textView1   btn_clear_1
         btn_add_1.setOnClickListener {
             Log.d("btn_add_1", "btn_add_1 > #1")
-            val dlg = SaveCoinAlarmDlg1(this, "코인 알람 설정하기", "")
-            dlg.show()
-
-//            dlgSetAlarm1Binding.coinEditPrice.text
+            //TEST > SUCCESS!!!
+            alertDialog = AlertDialog.Builder(this)
+            adapter1.notifyDataSetChanged()
+            alertDialog.setView(dlg1)
+            dialog = alertDialog.create()
+            dialog.show()
 
             Log.d("btn_add_1", "btn_add_1 > #finish")
         }
 
 //        binding..setOnClickListener {
 //            val dialog = SaveCoinAlarmDlg(this, "코인 알람 설정하기", "")
+//            //showSaveCoinAlarmDlg()
+//            showSaveCoinAlarmDlg1()
 //        }
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
         //btn_test1
         btn_test1.setOnClickListener {
-            showSaveCoinAlarmDlg()
-        }
 
+        }
 
     }
 
@@ -258,9 +324,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showSaveCoinAlarmDlg1() {
-        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val view = inflater.inflate(R.layout.dlg_set_alarm1, null)
-
+//        val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
+//        mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
     }
+
 
 }
