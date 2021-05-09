@@ -28,6 +28,7 @@ import androidx.core.app.NotificationCompat
 import com.jooplayconsole.upbitalarmprototype.databinding.DlgSetAlarm1Binding
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.*
+import kotlinx.android.synthetic.main.dlg_set_alarm1.view.*
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -40,25 +41,49 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mSpCoinName2: Spinner
     private lateinit var mSpCoinName3: Spinner
 
-    private var mSpCoinCond1: Spinner? = null
-    private var mSpCoinCond2: Spinner? = null
-    private var mSpCoinCond3: Spinner? = null
+    private lateinit var mSpCoinCond1: Spinner
+    private lateinit var mSpCoinCond2: Spinner
+    private lateinit var mSpCoinCond3: Spinner
+
+//    private var mSpCoinCond1: Spinner? = null
+//    private var mSpCoinCond2: Spinner? = null
+//    private var mSpCoinCond3: Spinner? = null
 
     private lateinit var dlgSetAlarm1Binding : SaveCoinAlarmDlg1
     private lateinit var dlgSetAlarm2Binding : SaveCoinAlarmDlg2
     private lateinit var dlgSetAlarm3Binding : SaveCoinAlarmDlg3
 
-    private lateinit var alertDialog: AlertDialog.Builder
-    private lateinit var dialog: AlertDialog
+    private lateinit var alertDialogBuilder1 : AlertDialog.Builder  //alertDialog
+    private lateinit var alertDlg1 : AlertDialog        //dialog
+    private lateinit var alertDialogBuilder2 : AlertDialog.Builder  //alertDialog
+    private lateinit var alertDlg2 : AlertDialog        //dialog
+    private lateinit var alertDialogBuilder3 : AlertDialog.Builder  //alertDialog
+    private lateinit var alertDlg3 : AlertDialog        //dialog
 
+    //exit by double tap
     private var FINISH_INTERVAL_TIME: Long = 1500
     private var backPressedTime: Long = 0
     var REQUIRED_PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
+
+    //
     val num=1
     val num2 =2
+    val upbitUrlHead = "https://api.upbit.com/v1/candles/minutes/1?market=KRW-"
+    val upbitUrlTail = "&count=1"
+    val m_dlg_alarm_title = "코인 알람 설정하기"
+
+    var m_saveCoinName1: String = ""
+    var m_saveCoinName2: String = ""
+    var m_saveCoinName3: String = ""
+    var m_saveCoinPrice1: String = "0"
+    var m_saveCoinPrice2: String = "0"
+    var m_saveCoinPrice3: String = "0"
+    var m_saveCoinCondition1: String = ""
+    var m_saveCoinCondition2: String = ""
+    var m_saveCoinCondition3: String = ""
 
     override fun getResources(): Resources {
         return super.getResources()
@@ -113,48 +138,88 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
+        /* 1st Coin Alarm Setting */
         val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
         mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
         val coinNameArrData = resources.getStringArray(R.array.coin_array)
-        val adapter1 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
-        mSpCoinName1.adapter = adapter1
+        val adapterCoinNm1 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+        mSpCoinName1.adapter = adapterCoinNm1
+        adapterCoinNm1.notifyDataSetChanged()
+
+        mSpCoinCond1 = dlg1.findViewById(R.id.coinSpinner_condition1)
+        val coinCondArrData = resources.getStringArray(R.array.coin_condition)
+        val adapterCoinCond1 = ArrayAdapter.createFromResource(this, R.array.coin_condition, android.R.layout.simple_spinner_item)
+        mSpCoinCond1.adapter = adapterCoinCond1
+        adapterCoinCond1.notifyDataSetChanged()
+
+        alertDialogBuilder1 = AlertDialog.Builder(this)
+        alertDialogBuilder1.setView(dlg1)
+        alertDlg1 = alertDialogBuilder1.create()
+        dlg1.text_title.text = m_dlg_alarm_title
+        //text_title.setTextColor(R.color.black)
+        dlg1.btn_positive.text = "설정"
+        dlg1.btn_negative.text = "닫기"
+        dlg1.text_description_coin_name.text = "코인이름"
+        dlg1.text_description_alarm_price.text = "코인가격"
+        dlg1.text_description_condition.text = "조건"
+
         mSpCoinName1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 Log.d("mSpCoinName1 > ", ""+mSpCoinName1.getItemAtPosition(position))       //
+                var strNm1 = mSpCoinName1.getItemAtPosition(position).toString()
+                var idxInit1 = strNm1.indexOf("_")
+                var coinNm1 = strNm1.substring(idxInit1+1, strNm1.length)
+                m_saveCoinName1 = coinNm1
+                Log.d("mSpCoinName1 > ", "$coinNm1")
+                networking(upbitUrlHead + coinNm1 + upbitUrlTail)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+        }
+        mSpCoinCond1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                var strCondition = mSpCoinCond1.getItemAtPosition(position).toString()
+                m_saveCoinCondition1 = strCondition
+                Log.d("mSpCoinCond1 > ", "$strCondition")
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
-
+        /* 1st Coin Alarm Setting End*/
         //hh.joo 20210509 end
-
-//        mSpCoinName1 = findViewById(R.id.coinSpinner_name) as Spinner
-//        coinSpinner_condition1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-//                var tmp = coinSpinner_condition1.getItemAtPosition(position)
-//                Log.d("sp_cond1", "#sp_cond1 > $tmp")
-//            }
-//
-//            override fun onNothingSelected(parent: AdapterView<*>?) {
-//            }
-//        }
-
-//        var dlgSetAlarm1Binding = DlgSetAlarm1Binding.inflate(layoutInflater)
-//        dlgSetAlarm1Binding.coinSpinnerName
-//        dlgSetAlarm1Binding = DlgSetAlarm1Binding.inflate(layoutInflater)
-//        dlgSetAlarm1Binding = DlgSetAlarm1Binding.inflate(layoutInflater)
 
         //alarm add 1   //  btn_add_1   textView1   btn_clear_1
         btn_add_1.setOnClickListener {
             Log.d("btn_add_1", "btn_add_1 > #1")
-            //TEST > SUCCESS!!!
-            alertDialog = AlertDialog.Builder(this)
-            adapter1.notifyDataSetChanged()
-            alertDialog.setView(dlg1)
-            dialog = alertDialog.create()
-            dialog.show()
-
+            alertDlg1.show()
             Log.d("btn_add_1", "btn_add_1 > #finish")
+        }
+
+        dlg1.btn_positive.setOnClickListener {
+            Log.d("미선택 > ", "$m_saveCoinName1") //선택안해도 1번으로 선택되어져 있음
+            MyApp.prefs.setString("pf_coinName1", m_saveCoinName1)
+            m_saveCoinPrice1 = dlg1.coinEdit_price1.text.toString()
+            MyApp.prefs.setString("pf_coinCondition1", m_saveCoinCondition1)
+
+            if(m_saveCoinPrice1.equals("")) {
+                m_saveCoinPrice1 = "0"
+                MyApp.prefs.setString("pf_coinPrice1", m_saveCoinPrice1)
+            }
+            else {
+                dlg1.coinEdit_price1.setText(m_saveCoinPrice1)
+                MyApp.prefs.setString("pf_coinPrice1", m_saveCoinPrice1)
+            }
+
+            textView1.text = "코인심볼:$m_saveCoinName1 / 코인가격:$m_saveCoinPrice1 / 조건:$m_saveCoinCondition1"
+            alertDlg1.dismiss()
+        }
+        dlg1.btn_negative.setOnClickListener {
+
+            var strLog = MyApp.prefs.getString("pf_coinName1", "empty") //test
+            Log.d("pref_Test > ", strLog)   //test
+            alertDlg1.dismiss()
+
         }
 
 //        binding..setOnClickListener {

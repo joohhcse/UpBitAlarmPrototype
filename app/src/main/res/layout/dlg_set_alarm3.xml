@@ -57,7 +57,7 @@
             />
 
         <EditText
-            android:id="@+id/coinEdit_price"
+            android:id="@+id/coinEdit_price3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="10dp"
