@@ -29,6 +29,8 @@ import com.jooplayconsole.upbitalarmprototype.databinding.DlgSetAlarm1Binding
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -251,13 +253,74 @@ class MainActivity : AppCompatActivity() {
 //        }).start()
 
         //Thread exam3
-        Thread(Runnable {
-            runOnUiThread {     //ui 관련 조작 Thread안에서    //Main Thread 안에서 돌아간다
-
-            }
-        }).start()
+//            Thread(Runnable {
+//                Thread.sleep(2000)
+//                Log.d("Runnable", "runnable start()!")
+//                runOnUiThread {     //ui 관련 조작 Thread안에서    //Main Thread 안에서 돌아간다
+//
+//                }
+//            }).start()
 
     }
+
+    suspend fun fetchDocs() {
+
+    }
+
+    suspend fun doNetworking(url: String) = withContext(Dispatchers.IO) {
+        /*perform network IO here*/
+        try {
+            val url = URL(urlString)
+
+            // 서버와의 연결 생성
+            val urlConnection = url.openConnection() as HttpURLConnection
+            urlConnection.requestMethod = "GET"
+
+            if (urlConnection.responseCode == HttpURLConnection.HTTP_OK) {
+                // 데이터 읽기
+                val streamReader = InputStreamReader(urlConnection.inputStream)
+                val buffered = BufferedReader(streamReader)
+
+                val content = StringBuilder()
+                while(true) {
+                    val line = buffered.readLine() ?: break
+                    content.append(line)
+                }
+
+                Log.d("[MainActivity]", "fun networking!!!")
+                Log.d("[MainActivity]", "content > $content")
+
+                val jsonStr = content.toString()
+                Log.d("[MainActivity:jsonStr]", "jsonString > $jsonStr")
+
+//                    val jsonObj = JSONArray(jsonStr)
+//                    val curPrice = jsonObj.getString(0)
+                val jArray = JSONArray(jsonStr)
+                for (i in 0 until jArray.length()) {
+                    val obj = jArray.getJSONObject(i)
+                    val market = obj.getString("market")
+                    val tradePrice = obj.getInt("trade_price")
+                    Log.d("[MainActivity]", "market($i) > $market")
+                    Log.d("[MainActivity]", "market($i) > $tradePrice")
+                }
+
+//TEST
+//                    val curPrice = JSONObject(jsonStr).getJSONArray("trade_price")
+//                    val curPrice = JSONArray(jsonStr).
+//                    Log.d("[MainActivity]", "curPrice > $curPrice")
+
+                // 스트림과 커넥션 해제
+                buffered.close()
+                urlConnection.disconnect()
+                runOnUiThread {
+                    // UI 작업
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
 
     override fun onBackPressed() {
         val tempTime = System.currentTimeMillis()
