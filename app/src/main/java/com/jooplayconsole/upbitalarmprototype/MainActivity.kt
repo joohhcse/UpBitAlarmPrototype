@@ -235,6 +235,28 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        //Thread exam1
+//        val runnable: Runnable = object : Runnable {
+//            override fun run() {
+//                Log.d("Runnable", "runnable start()!")
+//            }
+//        }
+//        val thread: Thread = Thread(runnable)
+
+        //Thread exam2
+//        Thread(object : Runnable {
+//            override fun run() {
+//
+//            }
+//        }).start()
+
+        //Thread exam3
+        Thread(Runnable {
+            runOnUiThread {     //ui 관련 조작 Thread안에서    //Main Thread 안에서 돌아간다
+
+            }
+        }).start()
+
     }
 
     override fun onBackPressed() {
@@ -392,6 +414,8 @@ class MainActivity : AppCompatActivity() {
 //        val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
 //        mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
     }
+
+
 
 
 }
