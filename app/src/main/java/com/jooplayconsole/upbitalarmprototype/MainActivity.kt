@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -14,23 +13,19 @@ import android.graphics.Color
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import com.jooplayconsole.upbitalarmprototype.databinding.DlgSetAlarm1Binding
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.view.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -234,8 +229,9 @@ class MainActivity : AppCompatActivity() {
 
         //btn_test1
         btn_test1.setOnClickListener {
-
+            fetch()
         }
+
 
         //Thread exam1
 //        val runnable: Runnable = object : Runnable {
@@ -263,6 +259,24 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    val job = Job()
+    val uiContext = job + Dispatchers.Main
+    val bgContext = job + Dispatchers.Default
+
+    val bgScope = CoroutineScope(bgContext)
+    val uiScope = CoroutineScope(uiContext)
+
+    fun fetch() {
+        uiScope.launch {
+            withContext(bgScope.coroutineContext) {
+//                networking("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")
+                doNetworking("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")
+            }
+        }
+    }
+
+
+
     suspend fun fetchDocs() {
 
     }
@@ -270,7 +284,8 @@ class MainActivity : AppCompatActivity() {
     suspend fun doNetworking(url: String) = withContext(Dispatchers.IO) {
         /*perform network IO here*/
         try {
-            val url = URL(urlString)
+            val url = URL(url)
+//            val url = URL("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")
 
             // 서버와의 연결 생성
             val urlConnection = url.openConnection() as HttpURLConnection
