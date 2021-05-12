@@ -259,23 +259,28 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    val job = Job()
-    val uiContext = job + Dispatchers.Main
-    val bgContext = job + Dispatchers.Default
+    // CoroutineScope example
+//    val job = Job()
+//    val uiContext = job + Dispatchers.Main
+//    val bgContext = job + Dispatchers.Default
+//
+//    val bgScope = CoroutineScope(bgContext)
+//    val uiScope = CoroutineScope(uiContext)
+//
+//    fun fetch() {
+//        uiScope.launch {
+//            withContext(bgScope.coroutineContext) {
+//                doNetworking("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")
+//            }
+//        }
+//    }
 
-    val bgScope = CoroutineScope(bgContext)
-    val uiScope = CoroutineScope(uiContext)
+    val scope = CoroutineScope(Dispatchers.IO)  // CoroutineScope 생성
 
-    fun fetch() {
-        uiScope.launch {
-            withContext(bgScope.coroutineContext) {
-//                networking("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")
-                doNetworking("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")
-            }
-        }
+    //아래 코드를 방금 만들어준 CoroutineScope에서 실행
+    val job = scope.launch {
+
     }
-
-
 
     suspend fun fetchDocs() {
 
