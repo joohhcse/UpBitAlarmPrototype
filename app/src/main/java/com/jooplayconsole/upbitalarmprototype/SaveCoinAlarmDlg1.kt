@@ -70,12 +70,12 @@ class SaveCoinAlarmDlg1(context: Context, var title: String, var content: String
 //            Log.d("SaveCoinAlarmDlg1", "conditionIdx > $condIdx")
 //            Log.d("SaveCoinAlarmDlg1", "price > $price")
 
-            Toast.makeText(context, "설정 되었습니다", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "설정 되었습니다", Toast.LENGTH_SHORT).show()
             dismiss()   //Dialog class method
         }
 
         btn_negative.setOnClickListener {
-//            Toast.makeText(context, "취소됬습니다.", Toast.LENGTH_LONG).show()
+//            Toast.makeText(context, "취소됬습니다.", Toast.LENGTH_SHORT).show()
             dismiss()
         }
     }

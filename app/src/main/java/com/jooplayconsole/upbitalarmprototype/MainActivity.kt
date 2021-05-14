@@ -11,9 +11,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.RingtoneManager
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
@@ -27,11 +29,14 @@ import kotlinx.android.synthetic.main.dlg_set_alarm1.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.view.*
 import kotlinx.coroutines.*
 import org.json.JSONArray
+import org.json.JSONException
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
+import kotlin.jvm.Throws
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mSpCoinName1: Spinner
@@ -71,6 +76,9 @@ class MainActivity : AppCompatActivity() {
     val upbitUrlHead = "https://api.upbit.com/v1/candles/minutes/1?market=KRW-"
     val upbitUrlTail = "&count=1"
     val m_dlg_alarm_title = "코인 알람 설정하기"
+
+//    private var repeatJob1 = null
+    private lateinit var repeatJob1 : Job
 
     var m_saveCoinName1: String = ""
     var m_saveCoinName2: String = ""
@@ -168,7 +176,7 @@ class MainActivity : AppCompatActivity() {
                 var coinNm1 = strNm1.substring(idxInit1+1, strNm1.length)
                 m_saveCoinName1 = coinNm1
                 Log.d("mSpCoinName1 > ", "$coinNm1")
-                networking(upbitUrlHead + coinNm1 + upbitUrlTail)
+//                networking(upbitUrlHead + coinNm1 + upbitUrlTail)   //test code
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
 
@@ -193,6 +201,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("btn_add_1", "btn_add_1 > #finish")
         }
 
+        //설정
         dlg1.btn_positive.setOnClickListener {
             Log.d("미선택 > ", "$m_saveCoinName1") //선택안해도 1번으로 선택되어져 있음
             MyApp.prefs.setString("pf_coinName1", m_saveCoinName1)
@@ -209,14 +218,24 @@ class MainActivity : AppCompatActivity() {
             }
 
             textView1.text = "코인심볼:$m_saveCoinName1 / 코인가격:$m_saveCoinPrice1 / 조건:$m_saveCoinCondition1"
+
+            repeatJob1 = repeatHttpUpbitPost(upbitUrlHead + m_saveCoinName1 + upbitUrlTail)
+
             alertDlg1.dismiss()
         }
+
+        //취소
         dlg1.btn_negative.setOnClickListener {
-
-            var strLog = MyApp.prefs.getString("pf_coinName1", "empty") //test
-            Log.d("pref_Test > ", strLog)   //test
+            Log.d("dlg1.btn_negative > ", "clicked!")
+//            var strLog = MyApp.prefs.getString("pf_coinName1", "empty") // remove pf_coinName1 ??
+//            Log.d("pref_Test > ", strLog)   //test
             alertDlg1.dismiss()
+        }
 
+        //clear
+        btn_clear_1.setOnClickListener {
+            Log.d("btn_claer_1 > ", "clicked!")
+            repeatJob1.cancel()
         }
 
 //        binding..setOnClickListener {
@@ -229,9 +248,12 @@ class MainActivity : AppCompatActivity() {
 
         //btn_test1
         btn_test1.setOnClickListener {
-            fetch()
+            repeatJob1 = repeatHttpUpbitPost("")
         }
 
+        btn_test2.setOnClickListener {
+            repeatJob1.cancel()
+        }
 
         //Thread exam1
 //        val runnable: Runnable = object : Runnable {
@@ -286,6 +308,77 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun repeatHttpUpbitPost(url: String) : Job {
+        return GlobalScope.launch {
+            while(true) {
+                var curCoinPrice = httpUpbitPost(url)
+                delay(2000L)
+                Log.d("[repeatHttpUpbitPost]", "########################### $curCoinPrice")
+
+
+            }
+        }
+    }
+
+    @Throws(IOException::class, JSONException::class)
+    suspend fun httpUpbitPost(url: String) : Int {
+        var tradePrice: Int = 0
+
+        withContext(Dispatchers.IO) {
+            try {
+                val url = URL(url)
+//                val url = URL("https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=1")    //for test
+
+                // 서버와의 연결 생성
+                val urlConnection = url.openConnection() as HttpURLConnection
+                urlConnection.requestMethod = "GET"
+
+                if (urlConnection.responseCode == HttpURLConnection.HTTP_OK) {
+                    // 데이터 읽기
+                    val streamReader = InputStreamReader(urlConnection.inputStream)
+                    val buffered = BufferedReader(streamReader)
+
+                    val content = StringBuilder()
+                    while(true) {
+                        val line = buffered.readLine() ?: break
+                        content.append(line)
+                    }
+
+                    Log.d("[MainActivity]", "fun networking!!!")
+                    Log.d("[MainActivity]", "content > $content")
+
+                    val jsonStr = content.toString()
+                    Log.d("[MainActivity:jsonStr]", "jsonString > $jsonStr")
+
+//                    val jsonObj = JSONArray(jsonStr)
+//                    val curPrice = jsonObj.getString(0)
+                    val jArray = JSONArray(jsonStr)
+
+                    for (i in 0 until jArray.length()) {
+                        val obj = jArray.getJSONObject(i)
+                        val market = obj.getString("market")
+                        tradePrice = obj.getInt("trade_price")
+                        Log.d("[MainActivity]", "market($i) > $market")
+                        Log.d("[MainActivity]", "market($i) > $tradePrice")
+                    }
+
+                    // 스트림과 커넥션 해제
+                    buffered.close()
+                    urlConnection.disconnect()
+                    runOnUiThread {
+                    // UI 작업
+                    }
+
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        return tradePrice  //return coin price
+    }
+
+
     suspend fun doNetworking(url: String) = withContext(Dispatchers.IO) {
         /*perform network IO here*/
         try {
@@ -339,6 +432,29 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun checkNetworkConnection(): Boolean {
+        val connMgr = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val networkInfo = connMgr.activeNetworkInfo
+        val isConnected: Boolean = if(networkInfo != null) networkInfo.isConnected() else false
+        if (networkInfo != null && isConnected) {
+            // show "Connected" & type of network "WIFI or MOBILE"
+            //tvIsConnected.text = "Connected " + networkInfo.typeName
+            // change background color to red
+            //tvIsConnected.setBackgroundColor(-0x8333da)
+            Toast.makeText(this, "Connected!!", Toast.LENGTH_SHORT).show()
+
+        } else {
+            // show "Not Connected"
+            //tvIsConnected.text = "Not Connected"
+            // change background color to green
+            //tvIsConnected.setBackgroundColor(-0x10000)
+            Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show()
+        }
+
+        return isConnected
     }
 
 
