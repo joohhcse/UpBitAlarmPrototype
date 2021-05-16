@@ -5,16 +5,20 @@ import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.Settings
 import android.util.Log
 import android.view.View
@@ -22,8 +26,11 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.view.*
@@ -37,6 +44,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
 import kotlin.jvm.Throws
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mSpCoinName1: Spinner
@@ -79,6 +87,8 @@ class MainActivity : AppCompatActivity() {
 
 //    private var repeatJob1 = null
     private lateinit var repeatJob1 : Job
+    private lateinit var repeatJob2 : Job
+    private lateinit var repeatJob3 : Job
 
     var m_saveCoinName1: String = ""
     var m_saveCoinName2: String = ""
@@ -90,14 +100,70 @@ class MainActivity : AppCompatActivity() {
     var m_saveCoinCondition2: String = ""
     var m_saveCoinCondition3: String = ""
 
+    var ringtone: Ringtone? = null
+    var vibrator: Vibrator? = null
+
+
+
     override fun getResources(): Resources {
         return super.getResources()
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //ringtone setting
+        val packageName: String = "com.jooplayconsole.upbitalarmprototype"
+        val uriRingtone = Uri.parse("android.resource://"+ packageName + "/" + R.raw.ringtone1)
+        ringtone = RingtoneManager.getRingtone(this, uriRingtone)
+
+        Log.d("[init2]", "coinNm2:"+MyApp.prefs.getString("pf_coinName2", "empty"))
+        Log.d("[init2]", "coinPrice2:"+MyApp.prefs.getString("pf_coinPrice2", "empty"))
+        Log.d("[init2]", "coinCondition2:"+MyApp.prefs.getString("pf_coinCondition2", "empty"))
+
+        Log.d("[init3]", "coinNm3:"+MyApp.prefs.getString("pf_coinName3", "empty"))
+        Log.d("[init3]", "coinPrice3:"+MyApp.prefs.getString("pf_coinPrice3", "empty"))
+        Log.d("[init3]", "coinCondition3:"+MyApp.prefs.getString("pf_coinCondition3", "empty"))
+
+        //init sharedPreference var
+        if(MyApp.prefs.getString("pf_coinName1", "empty") != "empty") {
+            m_saveCoinName1 = MyApp.prefs.getString("pf_coinName1", "empty")
+            m_saveCoinPrice1 = MyApp.prefs.getString("pf_coinPrice1", "empty")
+
+            if(MyApp.prefs.getString("pf_coinCondition1", "empty").equals("이상일 때")) {
+                textView1.text = "$m_saveCoinName1 : ₩$m_saveCoinPrice1↑"
+            }
+            else {
+                textView1.text = "$m_saveCoinName1 : ₩$m_saveCoinPrice1↓"
+            }
+        }
+
+        if(MyApp.prefs.getString("pf_coinName2", "empty") != "empty") {
+            m_saveCoinName2 = MyApp.prefs.getString("pf_coinName2", "empty")
+            m_saveCoinPrice2 = MyApp.prefs.getString("pf_coinPrice2", "empty")
+
+            if(MyApp.prefs.getString("pf_coinCondition2", "empty").equals("이상일 때")) {
+                textView2.text = "$m_saveCoinName2 : ₩$m_saveCoinPrice2↑"
+            }
+            else {
+                textView2.text = "$m_saveCoinName2 : ₩$m_saveCoinPrice2↓"
+            }
+        }
+
+        if(MyApp.prefs.getString("pf_coinName3", "empty") != "empty") {
+            m_saveCoinName3 = MyApp.prefs.getString("pf_coinName3", "empty")
+            m_saveCoinPrice3 = MyApp.prefs.getString("pf_coinPrice3", "empty")
+
+            if(MyApp.prefs.getString("pf_coinCondition3", "empty").equals("이상일 때")) {
+                textView3.text = "$m_saveCoinName3 : ₩$m_saveCoinPrice3↑"
+            }
+            else {
+                textView3.text = "$m_saveCoinName3 : ₩$m_saveCoinPrice3↓"
+            }
+        }
 
         //hh.joo 20210509
 //        val coinNameArrData = resources.getStringArray(R.array.coin_array)
@@ -191,8 +257,7 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
-        /* 1st Coin Alarm Setting End*/
-        //hh.joo 20210509 end
+        //hh.joo 20210509
 
         //alarm add 1   //  btn_add_1   textView1   btn_clear_1
         btn_add_1.setOnClickListener {
@@ -205,7 +270,7 @@ class MainActivity : AppCompatActivity() {
         dlg1.btn_positive.setOnClickListener {
             Log.d("미선택 > ", "$m_saveCoinName1") //선택안해도 1번으로 선택되어져 있음
             MyApp.prefs.setString("pf_coinName1", m_saveCoinName1)
-            m_saveCoinPrice1 = dlg1.coinEdit_price1.text.toString()
+            m_saveCoinPrice1 = dlg1.coinEdit_price.text.toString()
             MyApp.prefs.setString("pf_coinCondition1", m_saveCoinCondition1)
 
             if(m_saveCoinPrice1.equals("")) {
@@ -213,11 +278,17 @@ class MainActivity : AppCompatActivity() {
                 MyApp.prefs.setString("pf_coinPrice1", m_saveCoinPrice1)
             }
             else {
-                dlg1.coinEdit_price1.setText(m_saveCoinPrice1)
+                dlg1.coinEdit_price.setText(m_saveCoinPrice1)
                 MyApp.prefs.setString("pf_coinPrice1", m_saveCoinPrice1)
             }
 
-            textView1.text = "코인심볼:$m_saveCoinName1 / 코인가격:$m_saveCoinPrice1 / 조건:$m_saveCoinCondition1"
+//            textView1.text = "$m_saveCoinName1/₩$m_saveCoinPrice1/$m_saveCoinCondition1"
+            if(m_saveCoinCondition1.equals("이상일 때")) {
+                textView1.text = "$m_saveCoinName1 : ₩$m_saveCoinPrice1↑"
+            }
+            else {
+                textView1.text = "$m_saveCoinName1 : ₩$m_saveCoinPrice1↓"
+            }
 
             repeatJob1 = repeatHttpUpbitPost(upbitUrlHead + m_saveCoinName1 + upbitUrlTail)
 
@@ -226,33 +297,226 @@ class MainActivity : AppCompatActivity() {
 
         //취소
         dlg1.btn_negative.setOnClickListener {
-            Log.d("dlg1.btn_negative > ", "clicked!")
-//            var strLog = MyApp.prefs.getString("pf_coinName1", "empty") // remove pf_coinName1 ??
-//            Log.d("pref_Test > ", strLog)   //test
             alertDlg1.dismiss()
         }
 
         //clear
         btn_clear_1.setOnClickListener {
             Log.d("btn_claer_1 > ", "clicked!")
-            repeatJob1.cancel()
-        }
+            textView1.text = "코인알람을 설정해 주세요."
+            MyApp.prefs.setString("pf_coinName1", "empty")
+            MyApp.prefs.setString("pf_coinCondition1", "empty")
+            MyApp.prefs.setString("pf_coinPrice1", "empty")
 
-//        binding..setOnClickListener {
-//            val dialog = SaveCoinAlarmDlg(this, "코인 알람 설정하기", "")
-//            //showSaveCoinAlarmDlg()
-//            showSaveCoinAlarmDlg1()
-//        }
+            if(::repeatJob1.isInitialized) {
+                repeatJob1.cancel()
+            }
+
+            ringtone?.run {
+                stop()
+            }
+        }
+        /* 1st Coin Alarm Setting End*/
+
+        /* 2nd Coin Alarm Setting */
+        val dlg2 : View = layoutInflater.inflate(R.layout.dlg_set_alarm2, null)
+        mSpCoinName2 = dlg2.findViewById(R.id.coinSpinner_name2)
+        val adapterCoinNm2 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+        mSpCoinName2.adapter = adapterCoinNm2
+        adapterCoinNm2.notifyDataSetChanged()
+
+        mSpCoinCond2 = dlg2.findViewById(R.id.coinSpinner_condition2)
+        val adapterCoinCond2 = ArrayAdapter.createFromResource(this, R.array.coin_condition, android.R.layout.simple_spinner_item)
+        mSpCoinCond2.adapter = adapterCoinCond2
+        adapterCoinCond2.notifyDataSetChanged()
+
+        alertDialogBuilder2 = AlertDialog.Builder(this)
+        alertDialogBuilder2.setView(dlg2)
+        alertDlg2 = alertDialogBuilder2.create()
+        dlg2.text_title.text = m_dlg_alarm_title
+        //text_title.setTextColor(R.color.black)
+        dlg2.btn_positive.text = "설정"
+        dlg2.btn_negative.text = "닫기"
+        dlg2.text_description_coin_name.text = "코인이름"
+        dlg2.text_description_alarm_price.text = "코인가격"
+        dlg2.text_description_condition.text = "조건"
+
+        mSpCoinName2.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                var strNm2 = mSpCoinName2.getItemAtPosition(position).toString()
+                var idxInit2 = strNm2.indexOf("_")
+                var coinNm2 = strNm2.substring(idxInit2+1, strNm2.length)
+                m_saveCoinName2 = coinNm2
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+        }
+        mSpCoinCond2.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                var strCondition = mSpCoinCond2.getItemAtPosition(position).toString()
+                m_saveCoinCondition2 = strCondition
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+        btn_add_2.setOnClickListener {
+            alertDlg2.show()
+        }
+        dlg2.btn_positive.setOnClickListener {
+            MyApp.prefs.setString("pf_coinName2", m_saveCoinName2)
+            m_saveCoinPrice2 = dlg2.coinEdit_price.text.toString()
+            MyApp.prefs.setString("pf_coinCondition2", m_saveCoinCondition2)
+
+            if(m_saveCoinPrice2.equals("")) {
+                m_saveCoinPrice2 = "0"
+                MyApp.prefs.setString("pf_coinPrice2", m_saveCoinPrice2)
+            }
+            else {
+                dlg2.coinEdit_price.setText(m_saveCoinPrice2)
+                MyApp.prefs.setString("pf_coinPrice2", m_saveCoinPrice2)
+            }
+
+            if(m_saveCoinCondition2.equals("이상일 때")) {
+                textView2.text = "$m_saveCoinName2 : ₩$m_saveCoinPrice2↑"
+            }
+            else {
+                textView2.text = "$m_saveCoinName2 : ₩$m_saveCoinPrice2↓"
+            }
+
+            repeatJob2 = repeatHttpUpbitPost2(upbitUrlHead + m_saveCoinName2 + upbitUrlTail)
+
+            alertDlg2.dismiss()
+        }
+        dlg2.btn_negative.setOnClickListener {
+            alertDlg2.dismiss()
+        }
+        btn_clear_2.setOnClickListener {
+            textView2.text = "코인알람을 설정해 주세요."
+            MyApp.prefs.setString("pf_coinName2", "empty")
+            MyApp.prefs.setString("pf_coinCondition2", "empty")
+            MyApp.prefs.setString("pf_coinPrice2", "empty")
+
+            if(::repeatJob2.isInitialized) {
+                repeatJob2.cancel()
+            }
+
+            ringtone?.run {
+                stop()
+            }
+        }
+        /* 2nd Coin Alarm Setting End*/
+
+
+        /* 3nd Coin Alarm Setting*/
+        val dlg3 : View = layoutInflater.inflate(R.layout.dlg_set_alarm3, null)
+        mSpCoinName3 = dlg3.findViewById(R.id.coinSpinner_name3)
+        val adapterCoinNm3 = ArrayAdapter.createFromResource(this, R.array.coin_array, android.R.layout.simple_spinner_item)
+        mSpCoinName3.adapter = adapterCoinNm3
+        adapterCoinNm3.notifyDataSetChanged()
+
+        mSpCoinCond3 = dlg3.findViewById(R.id.coinSpinner_condition3)
+        val adapterCoinCond3 = ArrayAdapter.createFromResource(this, R.array.coin_condition, android.R.layout.simple_spinner_item)
+        mSpCoinCond3.adapter = adapterCoinCond3
+        adapterCoinCond3.notifyDataSetChanged()
+
+        alertDialogBuilder3 = AlertDialog.Builder(this)
+        alertDialogBuilder3.setView(dlg3)
+        alertDlg3 = alertDialogBuilder3.create()
+        dlg3.text_title.text = m_dlg_alarm_title
+        //text_title.setTextColor(R.color.black)
+        dlg3.btn_positive.text = "설정"
+        dlg3.btn_negative.text = "닫기"
+        dlg3.text_description_coin_name.text = "코인이름"
+        dlg3.text_description_alarm_price.text = "코인가격"
+        dlg3.text_description_condition.text = "조건"
+
+        mSpCoinName3.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                var strNm3 = mSpCoinName3.getItemAtPosition(position).toString()
+                var idxInit3 = strNm3.indexOf("_")
+                var coinNm3 = strNm3.substring(idxInit3+1, strNm3.length)
+                m_saveCoinName3 = coinNm3
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+        }
+        mSpCoinCond3.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                var strCondition = mSpCoinCond3.getItemAtPosition(position).toString()
+                m_saveCoinCondition3 = strCondition
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+        btn_add_3.setOnClickListener {
+            alertDlg3.show()
+        }
+        dlg3.btn_positive.setOnClickListener {
+            MyApp.prefs.setString("pf_coinName3", m_saveCoinName3)
+            m_saveCoinPrice3 = dlg3.coinEdit_price.text.toString()
+            MyApp.prefs.setString("pf_coinCondition3", m_saveCoinCondition3)
+
+            if(m_saveCoinPrice3.equals("")) {
+                m_saveCoinPrice3 = "0"
+                MyApp.prefs.setString("pf_coinPrice3", m_saveCoinPrice3)
+            }
+            else {
+                dlg3.coinEdit_price.setText(m_saveCoinPrice3)
+                MyApp.prefs.setString("pf_coinPrice3", m_saveCoinPrice3)
+            }
+
+            if(m_saveCoinCondition3.equals("이상일 때")) {
+                textView3.text = "$m_saveCoinName3 : ₩$m_saveCoinPrice3↑"
+            }
+            else {
+                textView3.text = "$m_saveCoinName3 : ₩$m_saveCoinPrice3↓"
+            }
+
+            repeatJob3 = repeatHttpUpbitPost3(upbitUrlHead + m_saveCoinName3 + upbitUrlTail)
+
+            alertDlg3.dismiss()
+        }
+        dlg3.btn_negative.setOnClickListener {
+            alertDlg3.dismiss()
+        }
+        btn_clear_3.setOnClickListener {
+            textView3.text = "코인알람을 설정해 주세요."
+            MyApp.prefs.setString("pf_coinName3", "empty")
+            MyApp.prefs.setString("pf_coinCondition3", "empty")
+            MyApp.prefs.setString("pf_coinPrice3", "empty")
+
+            if(::repeatJob3.isInitialized) {
+                repeatJob3.cancel()
+            }
+
+            ringtone?.run {
+                stop()
+            }
+        }
+        /* 3nd Coin Alarm Setting End*/
 
         ////////////////////////////////////////////////////////////////////////////////////////////
 
+        //ringtone
+//        val uriRingtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+//        val packageName = "com.jooplayconsole.upbitalarmprototype"
+//        val uriRingtone = Uri.parse("android.resource://"+ packageName + "/" + R.raw.ringtone1)
+//        ringtone = RingtoneManager.getRingtone(this, uriRingtone)
+
         //btn_test1
         btn_test1.setOnClickListener {
-            repeatJob1 = repeatHttpUpbitPost("")
+
+            ringtone?.run {
+                if (!isPlaying) play()
+                else stop()
+            }
+
         }
 
         btn_test2.setOnClickListener {
-            repeatJob1.cancel()
+
         }
 
         //Thread exam1
@@ -297,24 +561,182 @@ class MainActivity : AppCompatActivity() {
 //        }
 //    }
 
-    val scope = CoroutineScope(Dispatchers.IO)  // CoroutineScope 생성
-
-    //아래 코드를 방금 만들어준 CoroutineScope에서 실행
-    val job = scope.launch {
-
-    }
-
-    suspend fun fetchDocs() {
-
-    }
-
     fun repeatHttpUpbitPost(url: String) : Job {
         return GlobalScope.launch {
             while(true) {
                 var curCoinPrice = httpUpbitPost(url)
+                var chkCoinPrice : Int = curCoinPrice.toInt()
                 delay(2000L)
                 Log.d("[repeatHttpUpbitPost]", "########################### $curCoinPrice")
 
+                //1
+                if(!MyApp.prefs.getString("pf_coinName1", "empty").equals("empty")) {
+                    var pfCoinName1 = MyApp.prefs.getString("pf_coinName1", "empty")
+                    var pfCoinCondition1 = MyApp.prefs.getString("pf_coinCondition1", "empty")
+                    var pfCoinPrice1 = MyApp.prefs.getString("pf_coinPrice1", "empty").toInt()
+
+                    if(pfCoinCondition1.equals("이상일 때")) {
+                        if(chkCoinPrice >= pfCoinPrice1) {   //up condition
+                            showNotification("업비트 파워알람", "$pfCoinName1 : $pfCoinPrice1 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob1.isInitialized) {
+                                repeatJob1.cancel()
+                            }
+                        }
+                    }
+                    else {
+                        if(chkCoinPrice <= pfCoinPrice1) {   //down condition
+                            showNotification("업비트 파워알람", "$pfCoinName1 : $pfCoinPrice1 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob1.isInitialized) {
+                                repeatJob1.cancel()
+                            }
+                        }
+                    }
+                }
+                //2
+                if(!MyApp.prefs.getString("pf_coinName2", "empty").equals("empty")) {
+                    var pfCoinName2 = MyApp.prefs.getString("pf_coinName2", "empty")
+                    var pfCoinCondition2 = MyApp.prefs.getString("pf_coinCondition2", "empty")
+                    var pfCoinPrice2 = MyApp.prefs.getString("pf_coinPrice2", "empty").toInt()
+
+                    if(pfCoinCondition2.equals("이상일 때")) {
+                        if(chkCoinPrice >= pfCoinPrice2) {   //up condition
+                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob2.isInitialized) {
+                                repeatJob2.cancel()
+                            }
+                        }
+                    }
+                    else {
+                        if(chkCoinPrice <= pfCoinPrice2) {   //down condition
+                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob2.isInitialized) {
+                                repeatJob2.cancel()
+                            }
+                        }
+                    }
+                }
+                //3
+                if(!MyApp.prefs.getString("pf_coinName3", "empty").equals("empty")) {
+                    var pfCoinName3 = MyApp.prefs.getString("pf_coinName3", "empty")
+                    var pfCoinCondition3 = MyApp.prefs.getString("pf_coinCondition3", "empty")
+                    var pfCoinPrice3 = MyApp.prefs.getString("pf_coinPrice3", "empty").toInt()
+
+                    if(pfCoinCondition3.equals("이상일 때")) {
+                        if(chkCoinPrice >= pfCoinPrice3) {   //up condition
+                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob3.isInitialized) {
+                                repeatJob3.cancel()
+                            }
+                        }
+                    }
+                    else {
+                        if(chkCoinPrice <= pfCoinPrice3) {   //down condition
+                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob3.isInitialized) {
+                                repeatJob3.cancel()
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    fun repeatHttpUpbitPost2(url: String) : Job {
+        return GlobalScope.launch {
+            while(true) {
+                var curCoinPrice = httpUpbitPost(url)
+                var chkCoinPrice : Int = curCoinPrice.toInt()
+                delay(2000L)
+
+                //2
+                if(!MyApp.prefs.getString("pf_coinName2", "empty").equals("empty")) {
+                    var pfCoinName2 = MyApp.prefs.getString("pf_coinName2", "empty")
+                    var pfCoinCondition2 = MyApp.prefs.getString("pf_coinCondition2", "empty")
+                    var pfCoinPrice2 = MyApp.prefs.getString("pf_coinPrice2", "empty").toInt()
+
+                    if(pfCoinCondition2.equals("이상일 때")) {
+                        if(chkCoinPrice >= pfCoinPrice2) {   //up condition
+                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob2.isInitialized) {
+                                repeatJob2.cancel()
+                            }
+                        }
+                    }
+                    else {
+                        if(chkCoinPrice <= pfCoinPrice2) {   //down condition
+                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob2.isInitialized) {
+                                repeatJob2.cancel()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun repeatHttpUpbitPost3(url: String) : Job {
+        return GlobalScope.launch {
+            while(true) {
+                var curCoinPrice = httpUpbitPost(url)
+                var chkCoinPrice : Int = curCoinPrice.toInt()
+                delay(2000L)
+
+                //3
+                if(!MyApp.prefs.getString("pf_coinName3", "empty").equals("empty")) {
+                    var pfCoinName3 = MyApp.prefs.getString("pf_coinName3", "empty")
+                    var pfCoinCondition3 = MyApp.prefs.getString("pf_coinCondition3", "empty")
+                    var pfCoinPrice3 = MyApp.prefs.getString("pf_coinPrice3", "empty").toInt()
+
+                    if(pfCoinCondition3.equals("이상일 때")) {
+                        if(chkCoinPrice >= pfCoinPrice3) {   //up condition
+                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob3.isInitialized) {
+                                repeatJob3.cancel()
+                            }
+                        }
+                    }
+                    else {
+                        if(chkCoinPrice <= pfCoinPrice3) {   //down condition
+                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
+                            ringtone?.run {
+                                play()
+                            }
+                            if(::repeatJob3.isInitialized) {
+                                repeatJob3.cancel()
+                            }
+                        }
+                    }
+                }
 
             }
         }
@@ -473,7 +895,7 @@ class MainActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
-    //Alarm 호출
+    //Alarm 호출 test code
     public fun callAlarm() {
         Log.d("CoinAlarmActivity", "CoinAlarmActivity show()!")
 
@@ -531,6 +953,83 @@ class MainActivity : AppCompatActivity() {
         Log.d("CoinAlarmActivity", "CoinAlarmActivity hide()!")
 //        NotificationCompat.from(this).cancel(1)
     }
+
+    fun showNotification(title: String, message: String) {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        val pendingIntent = PendingIntent.getActivity(
+                this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT
+        )
+
+        val channelId = this.getString(R.string.default_notification_channel_id)
+        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+                .setColor(ContextCompat.getColor(this, android.R.color.holo_red_dark))
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setSound(defaultSoundUri)
+                .setContentIntent(pendingIntent)
+
+        val notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Since android Oreo notification channel is needed.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                    channelId,
+                    "Default Channel",
+                    NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        notificationManager.notify(Random.nextInt(), notificationBuilder.build())
+    }
+
+    private fun notiCoinAlarm() {
+        Log.d("notiCoinAlarm", "#1")
+        createNotificationChannel()
+        Log.d("notiCoinAlarm", "#2")
+
+        // Create an explicit intent for an Activity in your app
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+
+        Log.d("notiCoinAlarm", "#3")
+
+        val builder = NotificationCompat.Builder(this, "chUpbitNoti")
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle("업비트 파워알람")
+                .setContentText("Hello World!")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+
+    }
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            //val name = getString()
+            //val descriptionText = getString("업비트 코인알림")
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel("upbitNoti", "upbit", importance).apply {
+                description = "업비트 코인알림"
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                    getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
 
     fun networking(urlString: String) {
         thread(start=true) {
@@ -613,8 +1112,6 @@ class MainActivity : AppCompatActivity() {
 //        val dlg1 : View = layoutInflater.inflate(R.layout.dlg_set_alarm1, null)
 //        mSpCoinName1 = dlg1.findViewById(R.id.coinSpinner_name1)
     }
-
-
 
 
 }
