@@ -31,6 +31,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.*
 import kotlinx.android.synthetic.main.dlg_set_alarm1.view.*
@@ -114,6 +116,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //Admob
+        MobileAds.initialize(this, "ca-app-pub-4116817706973954~1074900951")
+        adView.loadAd(AdRequest.Builder().build())
 
         //ringtone setting
         val packageName: String = "com.jooplayconsole.upbitalarmprototype"
