@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
 
         //ringtone setting
         val packageName: String = "com.jooplayconsole.upbitalarmprototype"
-        val uriRingtone = Uri.parse("android.resource://"+ packageName + "/" + R.raw.ringtone1)
+        val uriRingtone = Uri.parse("android.resource://"+ packageName + "/" + R.raw.ringtone)
         ringtone = RingtoneManager.getRingtone(this, uriRingtone)
 
         Log.d("[init2]", "coinNm2:"+MyApp.prefs.getString("pf_coinName2", "empty"))
@@ -511,19 +511,15 @@ class MainActivity : AppCompatActivity() {
 //        val uriRingtone = Uri.parse("android.resource://"+ packageName + "/" + R.raw.ringtone1)
 //        ringtone = RingtoneManager.getRingtone(this, uriRingtone)
 
-        //btn_test1
-        btn_test1.setOnClickListener {
-
-            ringtone?.run {
-                if (!isPlaying) play()
-                else stop()
-            }
-
-        }
-
-        btn_test2.setOnClickListener {
-
-        }
+//        btn_test1.setOnClickListener {
+//            ringtone?.run {
+//                if (!isPlaying) play()
+//                else stop()
+//            }
+//        }
+//
+//        btn_test2.setOnClickListener {
+//        }
 
         //Thread exam1
 //        val runnable: Runnable = object : Runnable {
