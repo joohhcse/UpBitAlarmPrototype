@@ -14,7 +14,6 @@ class PreferenceUtil(context: Context) {
     *   > coinCondition :   "pf_coinCondition1" : "up" (or "down")
     * */
 
-
     fun getString(key: String, defValue: String): String {
         return prefs.getString(key, defValue).toString()
     }
