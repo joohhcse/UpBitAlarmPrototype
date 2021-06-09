@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
 //    private var mSpCoinCond1: Spinner? = null
 //    private var mSpCoinCond2: Spinner? = null
-//    private var mSpCoinCond3: Spinner? = null
+//    private var mSpCoinCond3: Spinner? = nullca-app-pub
 
     private lateinit var dlgSetAlarm1Binding : SaveCoinAlarmDlg1
     private lateinit var dlgSetAlarm2Binding : SaveCoinAlarmDlg2
