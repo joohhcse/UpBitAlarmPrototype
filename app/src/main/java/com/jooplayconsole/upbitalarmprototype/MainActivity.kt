@@ -600,64 +600,64 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                //2
-                if(!MyApp.prefs.getString("pf_coinName2", "empty").equals("empty")) {
-                    var pfCoinName2 = MyApp.prefs.getString("pf_coinName2", "empty")
-                    var pfCoinCondition2 = MyApp.prefs.getString("pf_coinCondition2", "empty")
-                    var pfCoinPrice2 = MyApp.prefs.getString("pf_coinPrice2", "empty").toInt()
-
-                    if(pfCoinCondition2.equals("이상일 때")) {
-                        if(chkCoinPrice >= pfCoinPrice2) {   //up condition
-                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
-                            ringtone?.run {
-                                play()
-                            }
-                            if(::repeatJob2.isInitialized) {
-                                repeatJob2.cancel()
-                            }
-                        }
-                    }
-                    else {
-                        if(chkCoinPrice <= pfCoinPrice2) {   //down condition
-                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
-                            ringtone?.run {
-                                play()
-                            }
-                            if(::repeatJob2.isInitialized) {
-                                repeatJob2.cancel()
-                            }
-                        }
-                    }
-                }
-                //3
-                if(!MyApp.prefs.getString("pf_coinName3", "empty").equals("empty")) {
-                    var pfCoinName3 = MyApp.prefs.getString("pf_coinName3", "empty")
-                    var pfCoinCondition3 = MyApp.prefs.getString("pf_coinCondition3", "empty")
-                    var pfCoinPrice3 = MyApp.prefs.getString("pf_coinPrice3", "empty").toInt()
-
-                    if(pfCoinCondition3.equals("이상일 때")) {
-                        if(chkCoinPrice >= pfCoinPrice3) {   //up condition
-                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
-                            ringtone?.run {
-                                play()
-                            }
-                            if(::repeatJob3.isInitialized) {
-                                repeatJob3.cancel()
-                            }
-                        }
-                    }
-                    else {
-                        if(chkCoinPrice <= pfCoinPrice3) {   //down condition
-                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
-                            ringtone?.run {
-                                play()
-                            }
-                            if(::repeatJob3.isInitialized) {
-                                repeatJob3.cancel()
-                            }
-                        }
-                    }
-                }
+//                //2
+//                if(!MyApp.prefs.getString("pf_coinName2", "empty").equals("empty")) {
+//                    var pfCoinName2 = MyApp.prefs.getString("pf_coinName2", "empty")
+//                    var pfCoinCondition2 = MyApp.prefs.getString("pf_coinCondition2", "empty")
+//                    var pfCoinPrice2 = MyApp.prefs.getString("pf_coinPrice2", "empty").toInt()
+//
+//                    if(pfCoinCondition2.equals("이상일 때")) {
+//                        if(chkCoinPrice >= pfCoinPrice2) {   //up condition
+//                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
+//                            ringtone?.run {
+//                                play()
+//                            }
+//                            if(::repeatJob2.isInitialized) {
+//                                repeatJob2.cancel()
+//                            }
+//                        }
+//                    }
+//                    else {
+//                        if(chkCoinPrice <= pfCoinPrice2) {   //down condition
+//                            showNotification("업비트 파워알람", "$pfCoinName2 : $pfCoinPrice2 !!")
+//                            ringtone?.run {
+//                                play()
+//                            }
+//                            if(::repeatJob2.isInitialized) {
+//                                repeatJob2.cancel()
+//                            }
+//                        }
+//                    }
+//                }
+//                //3
+//                if(!MyApp.prefs.getString("pf_coinName3", "empty").equals("empty")) {
+//                    var pfCoinName3 = MyApp.prefs.getString("pf_coinName3", "empty")
+//                    var pfCoinCondition3 = MyApp.prefs.getString("pf_coinCondition3", "empty")
+//                    var pfCoinPrice3 = MyApp.prefs.getString("pf_coinPrice3", "empty").toInt()
+//
+//                    if(pfCoinCondition3.equals("이상일 때")) {
+//                        if(chkCoinPrice >= pfCoinPrice3) {   //up condition
+//                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
+//                            ringtone?.run {
+//                                play()
+//                            }
+//                            if(::repeatJob3.isInitialized) {
+//                                repeatJob3.cancel()
+//                            }
+//                        }
+//                    }
+//                    else {
+//                        if(chkCoinPrice <= pfCoinPrice3) {   //down condition
+//                            showNotification("업비트 파워알람", "$pfCoinName3 : $pfCoinPrice3 !!")
+//                            ringtone?.run {
+//                                play()
+//                            }
+//                            if(::repeatJob3.isInitialized) {
+//                                repeatJob3.cancel()
+//                            }
+//                        }
+//                    }
+//                }
 
             }
         }
